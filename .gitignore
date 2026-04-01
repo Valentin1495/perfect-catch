@@ -1,0 +1,12 @@
+node_modules/
+
+# Build outputs
+android/.gradle/
+android/build/
+android/app/build/
+ios/App/build/
+ios/App/Pods/
+
+# Local environment files
+.DS_Store
+Thumbs.db

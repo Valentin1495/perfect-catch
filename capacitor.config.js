@@ -2,7 +2,7 @@ const serverUrl = process.env.CAP_SERVER_URL;
 
 /** @type {import('@capacitor/cli').CapacitorConfig} */
 const config = {
-  appId: 'com.yourname.perfectcatch',
+  appId: 'com.eunho.perfectcatch',
   appName: 'Perfect Catch',
   webDir: 'dist',
   plugins: {
