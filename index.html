@@ -2035,6 +2035,11 @@
       let initializing = null;
       let rewardEarnedThisShow = false;
 
+      function logAdError(context, err) {
+        const detail = err?.message || err?.code || err;
+        console.warn(`[AdService] ${context}`, detail);
+      }
+
       function getIds() {
         return platformName() === 'ios' ? ADMOB_IDS.ios : ADMOB_IDS.android;
       }
@@ -2109,7 +2114,8 @@
           try {
             await plugin.initialize({ initializeForTesting: ADMOB_USE_TEST_IDS });
             adsReady = true;
-          } catch (_) {
+          } catch (err) {
+            logAdError('initialize failed', err);
             adsReady = false;
             adsCanRequest = false;
             syncAvailability();
@@ -2139,7 +2145,8 @@
               adsCanRequest = updatedConsent?.canRequestAds ?? adsCanRequest;
               adsPrivacyOptionsRequired = updatedConsent?.privacyOptionsRequirementStatus === 'REQUIRED';
             }
-          } catch (_) {
+          } catch (err) {
+            logAdError('consent flow failed', err);
             adsCanRequest = true;
             adsPrivacyOptionsRequired = false;
           }
@@ -2170,7 +2177,8 @@
           });
           interstitialReady = true;
           return true;
-        } catch (_) {
+        } catch (err) {
+          logAdError('prepareInterstitial failed', err);
           interstitialReady = false;
           return false;
         } finally {
@@ -2192,7 +2200,8 @@
           rewardReady = true;
           syncAvailability();
           return true;
-        } catch (_) {
+        } catch (err) {
+          logAdError('prepareRewardVideoAd failed', err);
           rewardReady = false;
           syncAvailability();
           return false;
@@ -2220,7 +2229,8 @@
           interstitialReady = false;
           lastInterstitialAt = Date.now();
           return true;
-        } catch (_) {
+        } catch (err) {
+          logAdError('showInterstitial failed', err);
           interstitialReady = false;
           void preloadInterstitial(reason + '-retry');
           return false;
@@ -2239,7 +2249,8 @@
         pendingRewardBoost = null;
         try {
           await plugin.showRewardVideoAd();
-        } catch (_) {
+        } catch (err) {
+          logAdError('showRewardVideoAd failed', err);
           rewardReady = false;
           syncAvailability();
           void preloadRewarded('retry-reward-fallback');
@@ -2254,7 +2265,8 @@
         try {
           await plugin.showPrivacyOptionsForm();
           return true;
-        } catch (_) {
+        } catch (err) {
+          logAdError('showPrivacyOptionsForm failed', err);
           return false;
         }
       }
@@ -2381,7 +2393,9 @@
       const nativeAdsAvailable = adService.isNativeAdsAvailable() && !save.adsRemoved;
       retryRewardBtn.classList.toggle('hidden', !nativeAdsAvailable);
       const rewardLocked = rewardBoostConsumedThisLevel && rewardBoostLevelIdx === currentLevelIdx;
-      retryRewardBtn.disabled = nativeAdsAvailable ? (!adService.isRewardReady() || rewardLocked) : true;
+      // Keep the button tappable when ads are available so we can attempt
+      // on-demand rewarded preload instead of hard-locking on transient no-fill.
+      retryRewardBtn.disabled = nativeAdsAvailable ? rewardLocked : true;
       retryRewardBtn.style.opacity = retryRewardBtn.disabled ? '0.6' : '1';
       adsPrivacyRow.classList.toggle('hidden', !nativeAdsAvailable);
       adsPrivacyRow.classList.toggle('hidden', !nativeAdsAvailable || !adsPrivacyOptionsRequired);
@@ -4175,7 +4189,12 @@
 
     retryRewardBtn.addEventListener('click', async () => {
       const rewarded = await adService.showRewardedForRetryBoost();
-      if (!rewarded) pendingRewardBoost = null;
+      if (!rewarded) {
+        pendingRewardBoost = null;
+        alert('보상 광고를 아직 불러오지 못했습니다. 잠시 후 다시 시도해 주세요.');
+        renderAdEntryPoints();
+        return;
+      }
       showLevelIntro(currentLevelIdx, startGame);
     });
 
