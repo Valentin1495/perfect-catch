@@ -1581,7 +1581,7 @@
         <button class="sheet-action-btn" id="remove-ads-btn" type="button">
           <span class="sheet-action-copy">
             <span class="sheet-row-label">광고 제거</span>
-            <span class="sheet-row-sub" id="remove-ads-sub">한 번 구매로 모든 광고 제거</span>
+            <span class="sheet-row-sub" id="remove-ads-sub">한 번 구매로 전면 광고 영구 제거</span>
           </span>
           <span class="sheet-action-arrow">›</span>
         </button>
@@ -1622,14 +1622,14 @@
     const ADMOB_RETRY_REWARD = Object.freeze({ extraLife: 1 });
     const ADMOB_IDS = {
       ios: {
-        appId: 'ca-app-pub-3940256099942544~1458002511',
-        interstitial: 'ca-app-pub-3940256099942544/4411468910',
-        rewarded: 'ca-app-pub-3940256099942544/1712485313',
+        appId: 'ca-app-pub-3719891520128696~4796779721',
+        interstitial: 'ca-app-pub-3719891520128696/5322784524',
+        rewarded: 'ca-app-pub-3719891520128696/1784983868',
       },
       android: {
-        appId: 'ca-app-pub-3940256099942544~3347511713',
-        interstitial: 'ca-app-pub-3940256099942544/1033173712',
-        rewarded: 'ca-app-pub-3940256099942544/5224354917',
+        appId: 'ca-app-pub-3719891520128696~6547402139',
+        interstitial: 'ca-app-pub-3719891520128696/1184837777',
+        rewarded: 'ca-app-pub-3719891520128696/9931067198',
       },
     };
     const CANVAS_RATIO = 1;
@@ -2098,7 +2098,6 @@
       }
 
       async function initAds() {
-        if (save.adsRemoved) return false;
         if (initializing) return initializing;
         initializing = (async () => {
           plugin = resolveAdMobPlugin();
@@ -2167,6 +2166,7 @@
       async function preloadInterstitial(reason) {
         void reason;
         plugin = plugin || resolveAdMobPlugin();
+        if (save.adsRemoved) return false;
         if (!plugin || !adsReady || !adsCanRequest || interstitialReady || interstitialLoading) return false;
         interstitialLoading = true;
         try {
@@ -2238,7 +2238,6 @@
       }
 
       async function showRewardedForRetryBoost() {
-        if (save.adsRemoved) return false;
         plugin = plugin || resolveAdMobPlugin();
         if (!plugin || !adsReady || !adsCanRequest) return false;
         if (!rewardReady) {
@@ -2390,7 +2389,7 @@
     })();
 
     function renderAdEntryPoints() {
-      const nativeAdsAvailable = adService.isNativeAdsAvailable() && !save.adsRemoved;
+      const nativeAdsAvailable = adService.isNativeAdsAvailable();
       retryRewardBtn.classList.toggle('hidden', !nativeAdsAvailable);
       const rewardLocked = rewardBoostConsumedThisLevel && rewardBoostLevelIdx === currentLevelIdx;
       // Keep the button tappable when ads are available so we can attempt
@@ -4308,7 +4307,7 @@
         removeAdsRow.classList.remove('hidden');
         restoreAdsRow.classList.remove('hidden');
         adsRemovedRow.classList.add('hidden');
-        removeAdsSub.textContent = '한 번 구매로 모든 광고 제거';
+        removeAdsSub.textContent = '한 번 구매로 전면 광고 영구 제거';
       }
     }
 
@@ -4319,7 +4318,7 @@
       if (ok) {
         updateRemoveAdsUI();
       } else {
-        removeAdsSub.textContent = '한 번 구매로 모든 광고 제거';
+        removeAdsSub.textContent = '한 번 구매로 전면 광고 영구 제거';
         removeAdsBtn.disabled = false;
       }
     });
